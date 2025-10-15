@@ -1,5 +1,5 @@
 # Grup4_Satèl·lit
-Repositori amb els arxius del projecte del satèl·lit del grup 4, format per Alba Jarett, Alex Minghao Tong i Josep Curto, per a l'assignatura de Ciències de la Computació.
+Repositori amb els arxius del projecte del satèl·lit del grup 4, format per Alba Jarrett, Alex Minghao Tong i Josep Curto, per a l'assignatura de Ciències de la Computació.
 
 
  <b> Entrega actual publicada:  </b> Versió 1
