@@ -1,9 +1,12 @@
 from tkinter import *
+from tkinter import messagebox
+import tkinter as tk
 import serial
 import threading
 import time
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 # ---------- CONFIGURACIÓ DEL PORT SÈRIE ----------
 device = 'COM6'   # Canvia-ho segons el teu cas
@@ -64,7 +67,18 @@ def serial_thread():
                         temperatura.set(f"{trozos[0]} ºC")
                         humitat.set(f"{trozos[1]} %")
                         transmissio.set(trozos[2])
-                        actualitza_grafiques(float(trozos[0]), float(trozos[1]))
+                        control = 0
+                        if float(trozos[0]) < 0 or float(trozos[0]) > 40:
+                            root = tk.Tk()
+                            root.withdraw()
+                            messagebox.showwarning("Advertència", "Dada de Temperatura fora de rang: T: " + trozos[0] + "ºC")
+                            control = 1
+                        if float(trozos[1]) < 20 or float(trozos[1]) > 90:
+                            root = tk.Tk()
+                            root.withdraw()
+                            messagebox.showwarning("Advertència", "Dada d'Humitat fora de rang: H: " + trozos[1] + "%")  
+                        elif control == 0:
+                            actualitza_grafiques(float(trozos[0]), float(trozos[1]))
             except Exception as e:
                 print("Error en la lectura sèrie:", e)
         time.sleep(0.1)

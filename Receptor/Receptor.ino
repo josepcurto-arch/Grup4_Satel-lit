@@ -20,7 +20,7 @@ void loop() {
    temperatura = data.substring(0, comaIndex).toFloat();
    humitat = data.substring(comaIndex + 1).toFloat();
 
-   if (temperatura < 0 || temperatura > 40 || humitat < 0 || humitat > 100)  {
+   if (temperatura < 0 || temperatura > 40 || humitat < 20 || humitat > 90)  {
     digitalWrite(LED_BUILTIN, HIGH);  // fora del marge
     check = 1;
    } else {
