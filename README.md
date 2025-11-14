@@ -2,7 +2,7 @@
 Repositori amb els arxius del projecte del satèl·lit del grup 4, format per Alba Jarrett, Alex Minghao Tong i Josep Curto, per a l'assignatura de Ciències de la Computació.
 
 
- <b> Entrega actual publicada:  </b> Versió 1
+ <b> Entrega actual publicada:  </b> Versió 2 (faltant el vídeo)
 
  <b> Video Versió 1:  </b> <br> 
  [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KC8rA3bHNaE/0.jpg)](https://www.youtube.com/watch?v=KC8rA3bHNaE)
