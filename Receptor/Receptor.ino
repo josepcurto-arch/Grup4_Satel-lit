@@ -1,45 +1,75 @@
 #include <SoftwareSerial.h>
-SoftwareSerial mySerial(10, 11); // RX, TX (azul, naranja)
-float temperatura;
-float humitat;
-int check = 0;
-unsigned long rxage = 0;
-void setup() {
-   pinMode(LED_BUILTIN, OUTPUT);
-   Serial.begin(9600);
-   mySerial.begin(9600);
-   digitalWrite(LED_BUILTIN, LOW);
-}
-void loop() {
-   // Si rep dades del satèl·lit, les envia al portàtil i analitza que siguen vàlides
-   if (mySerial.available()) {
-      String data = mySerial.readString();
-      Serial.print(data);
-   
-   int comaIndex = data.indexOf(',');
-   temperatura = data.substring(0, comaIndex).toFloat();
-   humitat = data.substring(comaIndex + 1).toFloat();
+SoftwareSerial portSat(10, 11); // RX, TX (blau, taronja)
 
-   if (temperatura < 0 || temperatura > 40 || humitat < 20 || humitat > 90)  {
-    digitalWrite(LED_BUILTIN, HIGH);  // fora del marge
-    check = 1;
-   } else {
-    digitalWrite(LED_BUILTIN, LOW);   // dins del marge
-    check = 0;
-   }
-   rxage = millis();
-   }
-   // Si no ha rebut dades en més de 4 segons (la transmisió es cada 3) també emet alarma
-   unsigned long timerx = millis() - rxage;
-   if(timerx > 4000 || check == 1) {
-      digitalWrite(LED_BUILTIN, HIGH);
-   } else {
-      digitalWrite(LED_BUILTIN, LOW);
-   }
-   // Si rep ordre del portàtil, les envia al satèl·lit
-   if (Serial.available()) {
-      String data2 = Serial.readString();
-      mySerial.print(data2);
-      Serial.println(data2);
-   }
+const int pinBuzzer = 7;   // 🕪 Pin del buzzer
+const int pinBoto = 8;     // 🔘 Pin del botó per silenciar (a GND)
+
+bool alarmaSilenciada = false;
+bool alarmaActiva = false;
+
+unsigned long instantUltimaRecepcio = 0;
+
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(pinBuzzer, OUTPUT);
+  pinMode(pinBoto, INPUT_PULLUP);  // Botó connectat a GND
+  
+  Serial.begin(9600);
+  portSat.begin(9600);
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(pinBuzzer, LOW);
+}
+
+void loop() {
+  // --- RECEPCIÓ DE DADES DEL SATÈL·LIT ---
+  if (portSat.available()) {
+    String dades = portSat.readString();
+    Serial.print(dades);
+    
+    // Busquem la primera i segona coma per obtenir el segon valor
+    int primeraComa = dades.indexOf(',');
+    int segonaComa = dades.indexOf(',', primeraComa + 1);
+    
+    if (primeraComa != -1 && segonaComa != -1) {
+      String segonValorStr = dades.substring(primeraComa + 1, segonaComa);
+      int segonValor = segonValorStr.toInt();
+      
+      // --- CONDICIÓ D’ALARMA SEGONS EL SEGON ELEMENT ---
+      if (segonValor != 8 && segonValor != 0) {
+        alarmaActiva = true;
+      } else {
+        alarmaActiva = false;
+        alarmaSilenciada = false; // Es reinicia quan torna a valors correctes
+      }
+    }
+    instantUltimaRecepcio = millis(); // Actualitza el temps de recepció
+  }
+
+  // --- CONDICIÓ D’ALARMA PER TEMPS ---
+  unsigned long tempsSenseRecepcio = millis() - instantUltimaRecepcio;
+  if (tempsSenseRecepcio >= 5000) {  // Si han passat 5 segons sense dades
+    alarmaActiva = true;
+  }
+
+  // --- BOTÓ DE SILENCI ---
+  if (digitalRead(pinBoto) == LOW) {
+    delay(200);  // petita pausa per anti-rebot
+    alarmaSilenciada = true;
+  }
+
+  // --- LED I BUZZER INDICANT EL MATEIX ESTAT ---
+  if (alarmaActiva && !alarmaSilenciada) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    tone(pinBuzzer, 1000);  // So a 1 kHz
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+    noTone(pinBuzzer);
+  }
+
+  // --- REENVIA ORDRES AL SATÈL·LIT ---
+  if (Serial.available()) {
+    String dadesPC = Serial.readString();
+    portSat.print(dadesPC);
+    Serial.println(dadesPC);
+  }
 }
