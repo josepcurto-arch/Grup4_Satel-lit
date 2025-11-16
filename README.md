@@ -2,19 +2,24 @@
 Repositori amb els arxius del projecte del satèl·lit del grup 4, format per Alba Jarrett, Alex Minghao Tong i Josep Curto, per a l'assignatura de Ciències de la Computació.
 
 
- <b> Entrega actual publicada:  </b> Versió 2 (faltant el vídeo)
+ <b> Entrega actual publicada:  </b> Versió 2 
+
+ <b> Video Versió 2:  </b> <br> 
+ [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KC8rA3bHNaE/0.jpg)](https://www.youtube.com/watch?v=XykGpHQrWvc)
+
 
  <b> Video Versió 1:  </b> <br> 
  [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KC8rA3bHNaE/0.jpg)](https://www.youtube.com/watch?v=KC8rA3bHNaE)
 
  Funcionalitats disponibles:
  - 
-   - El satèl·lit llegeix i envia correctament les dades de Temperatura i Humitat del DHT11
+   - El satèl·lit llegeix i envia correctament les dades de Temperatura i Humitat del DHT11 i la Distància del sensor d'ultrasons, que es mou amb l'ajuda del servo.
    - L'estació de terra rep les dades correctament i les mostra a una interficie gràfica.
-   - A l'interficie, l'usuari pot para i reanudar la transmissió de dades, així com veure-les amb gràfiques.
-   - L'estació de terra dectecta dades errònies de temperatura, humitat o si no s'ha rebut informació durant massa temps.
+   - A l'interficie, l'usuari pot parar i reanudar la transmissió de dades, així com veure-les amb gràfiques que mostren els últims 30 segons. També pot decidir si les mitjanes es calculen a terra o al sàtel·lit.
+   - L'estació de terra dectecta dades errònies de temperatura, humitat o si no s'ha rebut informació durant massa temps. També informa del problema amb un missatge al programa Python i emet un so per informar de tal situació.
+   - L'usuari pot modificar l'interval de transmisió (enviant el missatge T X, sent X el temps entre transmisions.
 
-Parts importants del codi
+Parts importants del codi (sense actualitzar per a la Versió 2)
 - 
 
 PYTHON: Rebre les dades pel port sèrie i analitzar-les en busca d'errors (Format: temp,hum,nºtransmissió):
