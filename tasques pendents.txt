@@ -1,0 +1,20 @@
+Tasques per a la versió 3 (i les pendents de versió 2):
+ALEX:
+Mostrar la mitjana de cada valor a la gràfica del valor (mitjana temp a la grafica de temp (potser mateix color amb més transparència?))
+Checksum (últim valor que s'emet, Josep ajustarà la transmisió i recepció per enviar-ho, "només" has de fer la funció de càlcul del checksum al arduino i la del python)
+Registro de eventos (que no se borren los fitxers cada vegada que s'obri lo programa, que vaigue afegint valors)
+
+JOSEP:
+Establir max i min de la temperatura
+Posición del satélite (encara no se sap que és)
+Comunicación inalámbrica
+
+
+Alba:
+Grafica distancia-angle
+Comunicación inalámbrica
+Registro de eventos
+Comentaris: "Cada función tiene un comentario que describe lo que hace, qué parámetros tiene y qué resultado produce"
+
+IDEES VERSIÓ 4:
+ - 

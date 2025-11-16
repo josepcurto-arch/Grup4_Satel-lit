@@ -141,8 +141,7 @@ def mostrar_instruccions():
         "Instruccions Port sèrie amb el Satèl·lit:\n"
         " - TX0/TX1: Atura/Reanuda la transmissió (igual que el botó corresponent)\n"
         " - MI0/MI1: Càlcul de les mitjanes al satèl·lit/a terra (igual que el botó corresponent)\n"
-        " - T X: Ajustar el temps de transmissió, on X representa el temps en segons\n"
-        "   entre cada transmissió (ex. T 2) (pot haver-hi errors per a intervals inferiors a 1 segon)"
+        " - T X: Ajustar el temps de transmissió, on X representa el temps en segons entre cada transmissió (ex. T 2) (pot haver-hi errors per a intervals inferiors a 1 segon)"
     )
     messagebox.showinfo("Instruccions", instruccions)
 
@@ -151,73 +150,72 @@ def serial_thread():
     global temps_ultima_dada
     timer_actualitzacio_grafica = time.time() + 0.1
     while True:
-        #if mySerial and mySerial.in_waiting > 0:
-        try:
-            #linea = mySerial.readline().decode('utf-8').rstrip()
-            linea = "129,8,22,53,23;0,22;10,23;20,22;30,23;40,22;50,22;60,23;70,23;80,22;90,23;100,23;110,22;120,23;130,23;140,22;150,23;160,23;170,24,58"
-            if linea:
-                global time_control; global alarma_activada
-                global temp_err; global hum_err; global ultra_err
-                error_Label.config(text="Sense errors", fg="green")
-                time_control = 0
-                print("Rebut:", linea)
-                trozos = linea.split(',')
-                print("Trozos:", trozos)
-                if len(trozos) >= 4:                      # Assignem les variables a cada tros de les dades rebudes
-                    i, error_code, temp, hum, dist_list, angle_list, medt, medh, temp_err, hum_err, ultra_err, median_on = parse_trozos(trozos)
-                    print(f"Index: {i}, Error Code: {error_code}, Temp: {temp}, Hum: {hum}, Med Temp: {medt}, Med Hum: {medh}")
-                    dist_list_global = dist_list
-                    angle_list_global = angle_list
-                    temperatura.set(f"{temp} ºC")
-                    humitat.set(f"{hum} %")
-                    transmissio.set(i)
-                    control = 0
-                    bits = format(error_code, "04b")
-                    median_on  = bits[-4] == "1"
-                    if i == 1:     #Primera lectura per posar-ho tot al valor inicial
-                        med_temp_list[0] = temp
-                        med_hum_list[0] = hum
+        if mySerial and mySerial.in_waiting > 0:
+            try:
+                linea = mySerial.readline().decode('utf-8').rstrip()
+                if linea:
+                    global time_control; global alarma_activada
+                    global temp_err; global hum_err; global ultra_err
+                    error_Label.config(text="Sense errors", fg="green")
+                    time_control = 0
+                    print("Rebut:", linea)
+                    trozos = linea.split(',')
+                    print("Trozos:", trozos)
+                    if len(trozos) >= 4:                      # Assignem les variables a cada tros de les dades rebudes
+                        i, error_code, temp, hum, dist_list, angle_list, medt, medh, temp_err, hum_err, ultra_err, median_on = parse_trozos(trozos)
+                        print(f"Index: {i}, Error Code: {error_code}, Temp: {temp}, Hum: {hum}, Med Temp: {medt}, Med Hum: {medh}")
+                        dist_list_global = dist_list
+                        angle_list_global = angle_list
+                        temperatura.set(f"{temp} ºC")
+                        humitat.set(f"{hum} %")
+                        transmissio.set(i)
+                        control = 0
+                        bits = format(error_code, "04b")
+                        median_on  = bits[-4] == "1"
+                        if i == 1:     #Primera lectura per posar-ho tot al valor inicial
+                            med_temp_list[0] = temp
+                            med_hum_list[0] = hum
 
+                            a = 0
+                            while a!=10:
+                                med_temp_list[i]=med_temp_list[0]
+                                med_hum_list[i]=med_hum_list[0]
+                                a=a+1
                         a = 0
-                        while a!=10:
-                            med_temp_list[i]=med_temp_list[0]
-                            med_hum_list[i]=med_hum_list[0]
-                            a=a+1
-                    a = 0
-                    #Cada vegada:
-                    med_temp_list[a] = temp
-                    med_hum_list[a] = hum
-                    a = a+1                        
-                    if a == 10:
-                        a = 0
-                    if not median_on:
-                        while b != 10:
-                            medt = medt[b]
-                            medh = medh[b]
-                            b = b + 1
-                        medt = medt / 10
-                        medh = medh / 10 # Les variables medt i medh contenen l'última mitjana calculada
-                    if temp_err != 0:
-                        print("Error Temperatura")
-                        control = 1
-                        error_Label.config(text="Error Temperatura", fg="red")
-                            
-                    if hum_err != 0:
-                        print("Error Humitat")
-                        control = 1
-                        error_Label.config(text="Error Humitat", fg="red")
+                        #Cada vegada:
+                        med_temp_list[a] = temp
+                        med_hum_list[a] = hum
+                        a = a+1                        
+                        if a == 10:
+                            a = 0
+                        if not median_on:
+                            while b != 10:
+                                medt = medt[b]
+                                medh = medh[b]
+                                b = b + 1
+                            medt = medt / 10
+                            medh = medh / 10 # Les variables medt i medh contenen l'última mitjana calculada
+                        if temp_err != 0:
+                            print("Error Temperatura")
+                            control = 1
+                            error_Label.config(text="Error Temperatura", fg="red")
+                                
+                        if hum_err != 0:
+                            print("Error Humitat")
+                            control = 1
+                            error_Label.config(text="Error Humitat", fg="red")
 
-                    if ultra_err != 0:
-                        print("Error Ultrasons")
-                        control = 1 
-                        error_Label.config(text="Error Ultrasons", fg="red")
+                        if ultra_err != 0:
+                            print("Error Ultrasons")
+                            control = 1 
+                            error_Label.config(text="Error Ultrasons", fg="red")
 
-                    elif control == 0:
-                        actualitza_grafiques(temp, hum)
-                        error_Label.config(text="Sense errors", fg="green")
-                        temps_ultima_dada = time.time()
-        except Exception as e:
-            print("Error en la lectura sèrie:", e)
+                        elif control == 0:
+                            actualitza_grafiques(temp, hum)
+                            error_Label.config(text="Sense errors", fg="green")
+                            temps_ultima_dada = time.time()
+            except Exception as e:
+                print("Error en la lectura sèrie:", e)
 
         if time.time() - temps_ultima_dada >= 5 and time_control == 0:
             if not valors_temp or valors_temp[-1] is not None:
@@ -273,7 +271,8 @@ def actualitza_grafiques(temp, hum):
 
 # ---------- CREACIÓ DE LA FINESTRA ----------
 window = Tk()
-menu_bar = Tk.Menu(root)
+menu_bar = Menu(window)
+window.config(menu=menu_bar)
 window.geometry("900x600")
 window.title("Monitor de Recepció de Dades del Satèl·lit")
 window.rowconfigure([0,1,2,3,4,5,6], weight=1)
@@ -334,6 +333,8 @@ error_Label.grid(row=6, column=4, columnspan=2, pady=10)
 # ---------- MENÚ D'AJUDA (HELP) ----------
 help_menu = tk.Menu(menu_bar, tearoff=0)
 help_menu.add_command(label="Instruccions Satèl·lit", command=mostrar_instruccions)
+menu_bar.add_cascade(label="Ajuda", menu=help_menu)
+
 
 # ---------- EXECUCIÓ DEL FIL DE LECTURA ----------
 thread = threading.Thread(target=serial_thread, daemon=True)
