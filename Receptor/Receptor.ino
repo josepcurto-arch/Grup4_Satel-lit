@@ -1,8 +1,8 @@
 #include <SoftwareSerial.h>
 SoftwareSerial portSat(10, 11); // RX, TX (blau, taronja)
 
-const int pinBuzzer = 7;   // 🕪 Pin del buzzer
-const int pinBoto = 8;     // 🔘 Pin del botó per silenciar (a GND)
+const int pinBuzzer = 7;   //  Pin del buzzer
+const int pinBoto = 8;     //  Pin del botó per silenciar (a GND)
 
 bool alarmaSilenciada = false;
 bool alarmaActiva = false;
@@ -34,7 +34,7 @@ void loop() {
       String segonValorStr = dades.substring(primeraComa + 1, segonaComa);
       int segonValor = segonValorStr.toInt();
       
-      // --- CONDICIÓ D’ALARMA SEGONS EL SEGON ELEMENT ---
+      // --- CONDICIÓ D’ALARMA SEGONS EL SEGON ELEMENT (CODI ERROR)---
       if (segonValor != 8 && segonValor != 0) {
         alarmaActiva = true;
       } else {

@@ -1,42 +1,50 @@
-import serial
 import matplotlib.pyplot as plt
 import numpy as np
 
-#CONFIGURACIÓ DEL PORT SÈRIE
-arduino = serial.Serial('COM5', 9600, timeout=1) #modificar port depenent de cadascú
+# SEMICIRCUMFERÈNCIA DE FONS
+theta = np.linspace(0, np.pi, 181)   # Angles de 0 a 180 graus
+r = np.full_like(theta, 200)         # Radi màxim
 
-#CONFIGURACIÓ DE LA GRÀFICA
-plt.ion()
 fig = plt.figure(figsize=(6,6))
 ax = fig.add_subplot(111, polar=True)
-ax.set_ylim(0, 200)
-ax.set_theta_zero_location("N")
+
+# Dibuixar semicircumferència com a scatter o línia
+ax.plot(theta, r, color='lightgray', linewidth=2, linestyle='--')
+
+# Configuració semicercle
+ax.set_thetamin(0)
+ax.set_thetamax(180)
+ax.set_theta_zero_location("W")
 ax.set_theta_direction(-1)
+ax.set_ylim(0, 200)
+
+# Dades de radar inicials (vacies)
 line, = ax.plot([], [], 'go-', linewidth=2)
 
 angles = []
 distancies = []
 
-while True:
-    data = arduino.readline().decode().strip()
+print("Introdueix les dades en format: distancia:angle,distancia:angle,...")
+
+for _ in range(10):  # Llegir 10 vegades
+    data = input("Dades: ").strip()
     if data:
         try:
-            angle_str, dist_str = data.split(',')
-            angle = float(angle_str)
-            dist = float(dist_str)
-
-            theta = np.deg2rad(angle)
-            angles.append(theta)
-            distancies.append(dist)
-
-            if len(angles) > 181:
-                angles.pop(0)
-                distancies.pop(0)
+            parelles = data.split(',')
+            angles.clear()
+            distancies.clear()
+            for p in parelles:
+                dist_str, angle_str = p.split(':')
+                dist = float(dist_str)
+                angle = float(angle_str)
+                if 0 <= angle <= 180:
+                    theta_point = np.deg2rad(angle)
+                    angles.append(theta_point)
+                    distancies.append(dist)
 
             line.set_data(angles, distancies)
-            ax.set_title("Radar amb HC-SR04", va='bottom', fontsize=14)
-            plt.pause(0.001)
+            plt.draw()
+            plt.pause(0.5)
 
         except ValueError:
-            pass
-
+            print("Format incorrecte! Usa distancia:angle,...")
