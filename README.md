@@ -5,8 +5,8 @@ El projecte simula un sistema complet satèl·lit – estació de terra, incloen
 
  <b> Entrega actual publicada:  </b> Versió 4
 
- <b> Video Versió 3:  </b> <br> 
- [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KC8rA3bHNaE/0.jpg)](https://www.youtube.com/watch?v=Ry7vCwv50jE)
+ <b> Video Versió 4:  </b> <br> 
+ [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KC8rA3bHNaE/0.jpg)](https://youtu.be/zalLmHDMvOw)
 
 
  Funcionalitats disponibles:
