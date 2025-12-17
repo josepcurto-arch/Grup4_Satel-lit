@@ -8,6 +8,10 @@ El projecte simula un sistema complet satèl·lit – estació de terra, incloen
  <b> Video Versió 4:  </b> <br> 
  [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KC8rA3bHNaE/0.jpg)](https://youtu.be/zalLmHDMvOw)
 
+Foto de grup: <br>
+<img src="https://github.com/user-attachments/assets/b6674410-856c-457d-a9b8-a62237ed1c41" alt="IMG_20251216_144434" width="200"/>
+
+
 
  Funcionalitats disponibles:
  - 
