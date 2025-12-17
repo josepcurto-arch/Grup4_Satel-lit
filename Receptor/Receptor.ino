@@ -1,75 +1,153 @@
 #include <SoftwareSerial.h>
-SoftwareSerial portSat(10, 11); // RX, TX (blau, taronja)
+#include <math.h>
 
-const int pinBuzzer = 7;   //  Pin del buzzer
-const int pinBoto = 8;     //  Pin del botó per silenciar (a GND)
+/* ================== PINS ================== */
+#define RX_PIN 10
+#define TX_PIN 11
+#define BUZZER_PIN 7
+#define BUTTON_PIN 8
 
-bool alarmaSilenciada = false;
-bool alarmaActiva = false;
+/* ================== SERIAL ================== */
+SoftwareSerial satSerial(RX_PIN, TX_PIN);
 
-unsigned long instantUltimaRecepcio = 0;
+/* ================== CONSTANTS ================== */
+const float R_EARTH = 6371.0; // km
 
-void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(pinBuzzer, OUTPUT);
-  pinMode(pinBoto, INPUT_PULLUP);  // Botó connectat a GND
-  
-  Serial.begin(9600);
-  portSat.begin(9600);
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(pinBuzzer, LOW);
+/* ================== VARIABLES ================== */
+unsigned long lastRxTime = 0;
+unsigned long tempstx = 6000;   // ms
+
+bool txEnabled = true;
+bool buzzerMuted = false;
+bool buzzerOn = false;
+
+/* ================== BUZZER ================== */
+void startBuzzer() {
+  if (!buzzerOn) {
+    tone(BUZZER_PIN, 2000);
+    buzzerOn = true;
+  }
 }
 
-void loop() {
-  // --- RECEPCIÓ DE DADES DEL SATÈL·LIT ---
-  if (portSat.available()) {
-    String dades = portSat.readString();
-    Serial.print(dades);
-    
-    // Busquem la primera i segona coma per obtenir el segon valor
-    int primeraComa = dades.indexOf(',');
-    int segonaComa = dades.indexOf(',', primeraComa + 1);
-    
-    if (primeraComa != -1 && segonaComa != -1) {
-      String segonValorStr = dades.substring(primeraComa + 1, segonaComa);
-      int segonValor = segonValorStr.toInt();
-      
-      // --- CONDICIÓ D’ALARMA SEGONS EL SEGON ELEMENT (CODI ERROR)---
-      if (segonValor != 8 && segonValor != 0) {
-        alarmaActiva = true;
-      } else {
-        alarmaActiva = false;
-        alarmaSilenciada = false; // Es reinicia quan torna a valors correctes
-      }
+void stopBuzzer() {
+  if (buzzerOn) {
+    noTone(BUZZER_PIN);
+    buzzerOn = false;
+  }
+}
+
+/* ================== CONFIG ================== */
+void processConfig(String cfg) {
+  int values[7];
+  int idx = 0;
+
+  while (cfg.length() && idx < 7) {
+    int comma = cfg.indexOf(',');
+    if (comma == -1) {
+      values[idx++] = cfg.toInt();
+      break;
+    } else {
+      values[idx++] = cfg.substring(0, comma).toInt();
+      cfg = cfg.substring(comma + 1);
     }
-    instantUltimaRecepcio = millis(); // Actualitza el temps de recepció
   }
 
-  // --- CONDICIÓ D’ALARMA PER TEMPS ---
-  unsigned long tempsSenseRecepcio = millis() - instantUltimaRecepcio;
-  if (tempsSenseRecepcio >= 5000) {  // Si han passat 5 segons sense dades
-    alarmaActiva = true;
+  if (idx == 7) {
+    tempstx = (unsigned long)values[6] * 1000UL;
+  }
+}
+
+/* ================== PARSE ECEF ================== */
+void parseAndDisplayECEF(String line) {
+  int field = 0;
+  float x = 0, y = 0, z = 0;
+
+  while (line.length()) {
+    int comma = line.indexOf(',');
+    String token;
+
+    if (comma == -1) {
+      token = line;
+      line = "";
+    } else {
+      token = line.substring(0, comma);
+      line = line.substring(comma + 1);
+    }
+
+    field++;
+    if (field == 4) x = token.toFloat();
+    if (field == 5) y = token.toFloat();
+    if (field == 6) z = token.toFloat();
+  }
+}
+
+/* ================== SETUP ================== */
+void setup() {
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  Serial.begin(9600);
+  satSerial.begin(9600);
+  satSerial.setTimeout(2000);
+
+  noTone(BUZZER_PIN);
+  lastRxTime = millis();
+}
+
+/* ================== LOOP ================== */
+void loop() {
+
+  /* --- Dades LoRa --- */
+  if (satSerial.available()) {
+      String line = satSerial.readStringUntil('\n');
+      line.trim();
+
+      if (!(line.startsWith("9600") || line.indexOf("YL_800T") != -1)) {
+          if (line.length() > 0 && line.indexOf(',') != -1) { // <-- només línies amb coma
+              lastRxTime = millis();
+              Serial.println(line);
+
+              buzzerMuted = false;
+              stopBuzzer();
+
+              parseAndDisplayECEF(line);  // processa només dades amb coma
+          }
+      }
   }
 
-  // --- BOTÓ DE SILENCI ---
-  if (digitalRead(pinBoto) == LOW) {
-    delay(200);  // petita pausa per anti-rebot
-    alarmaSilenciada = true;
-  }
-
-  // --- LED I BUZZER INDICANT EL MATEIX ESTAT ---
-  if (alarmaActiva && !alarmaSilenciada) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    tone(pinBuzzer, 1000);  // So a 1 kHz
-  } else {
-    digitalWrite(LED_BUILTIN, LOW);
-    noTone(pinBuzzer);
-  }
-
-  // --- REENVIA ORDRES AL SATÈL·LIT ---
+  /* --- Comandes PC --- */
   if (Serial.available()) {
-    String dadesPC = Serial.readString();
-    portSat.print(dadesPC);
-    Serial.println(dadesPC);
+      String cmd = Serial.readStringUntil('\n');
+      cmd.trim();
+
+      // Reenviem sempre al LoRa
+      satSerial.println(cmd);
+
+      if (cmd == "TX0") {
+          txEnabled = false;
+          stopBuzzer();
+      } else if (cmd == "TX1") {
+          txEnabled = true;
+      } 
+      if(cmd.indexOf(',') != -1) {
+          processConfig(cmd); // processa qualsevol altra cosa del port sèrie
+      }
+  }
+
+
+  /* --- Botó silenci --- */
+  if (digitalRead(BUTTON_PIN) == LOW) {
+    buzzerMuted = true;
+    stopBuzzer();
+    delay(300);
+  }
+
+  /* --- Timeout --- */
+  if (txEnabled) {
+    if (millis() - lastRxTime > tempstx && !buzzerMuted) {
+      startBuzzer();
+    }
+  } else {
+    stopBuzzer();
   }
 }
